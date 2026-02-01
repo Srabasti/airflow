@@ -70,7 +70,7 @@ class HttpToGCSOperator(BaseOperator):
         If set as a sequence, the identities from the list must grant Service Account Token Creator IAM role to the directly preceding identity,
         with first account from the list granting this role to the originating account.
     :param unwrap_single: If True (default), returns a single URI string when there's only one file.
-        If False, always returns a list of URIs. Default will change to False in a future release.    
+        If False, always returns a list of URIs. Default will change to False in a future release.
     :param bucket_name: The bucket to upload to.
     :param object_name: The object name to set when uploading the file.
     :param mime_type: The file mime type set when uploading the file.
@@ -185,7 +185,7 @@ class HttpToGCSOperator(BaseOperator):
         """Create and return an GCSHook."""
         return GCSHook(gcp_conn_id=self.gcp_conn_id, impersonation_chain=self.impersonation_chain)
 
-    def execute(self, context: Context)  -> str | list[str]:
+    def execute(self, context: Context) -> str | list[str]:
         self.log.info("Calling HTTP method")
         response = self.http_hook.run(
             endpoint=self.endpoint, data=self.data, headers=self.headers, extra_options=self.extra_options
