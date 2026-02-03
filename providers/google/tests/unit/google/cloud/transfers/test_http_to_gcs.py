@@ -67,6 +67,56 @@ class TestHttpToGCSOperator:
             bucket_name=TEST_BUCKET,
             gcp_conn_id=GCP_CONN_ID,
             impersonation_chain=IMPERSONATION_CHAIN,
+            unwrap_single=True,
+        )
+        task.execute(None)
+
+        # GCS
+        gcs_hook.assert_called_once_with(gcp_conn_id=GCP_CONN_ID, impersonation_chain=IMPERSONATION_CHAIN)
+        task.gcs_hook.upload.assert_called_once_with(
+            bucket_name=TEST_BUCKET,
+            object_name=DESTINATION_PATH_FILE,
+            data=task.http_hook.run.return_value.content,
+            mime_type=None,
+            gzip=False,
+            encoding=task.http_hook.run.return_value.encoding,
+            chunk_size=None,
+            timeout=None,
+            num_max_attempts=NUM_MAX_ATTEMPTS,
+            metadata=None,
+            cache_control=None,
+            user_project=None,
+        )
+
+        # HTTP
+        http_hook.assert_called_once_with(
+            DEFAULT_HTTP_METHOD,
+            http_conn_id=HTTP_CONN_ID,
+            auth_type=None,
+            tcp_keep_alive=True,
+            tcp_keep_alive_idle=TCP_KEEP_ALIVE_IDLE,
+            tcp_keep_alive_count=TCP_KEEP_ALIVE_COUNT,
+            tcp_keep_alive_interval=TCP_KEEP_ALIVE_INTERVAL,
+        )
+        task.http_hook.run.assert_called_once_with(
+            endpoint=ENDPOINT, headers=HEADERS, data=DATA, extra_options=EXTRA_OPTIONS
+        )
+
+    @mock.patch("airflow.providers.google.cloud.transfers.http_to_gcs.GCSHook")
+    @mock.patch("airflow.providers.google.cloud.transfers.http_to_gcs.HttpHook")
+    def test_execute_with_single_file_unwrap_false(self, http_hook, gcs_hook):
+        task = HttpToGCSOperator(
+            task_id="http_to_gcs_operator",
+            http_conn_id=HTTP_CONN_ID,
+            endpoint=ENDPOINT,
+            headers=HEADERS,
+            data=DATA,
+            extra_options=EXTRA_OPTIONS,
+            object_name=DESTINATION_PATH_FILE,
+            bucket_name=TEST_BUCKET,
+            gcp_conn_id=GCP_CONN_ID,
+            impersonation_chain=IMPERSONATION_CHAIN,
+            unwrap_single=False,
         )
         task.execute(None)
 
