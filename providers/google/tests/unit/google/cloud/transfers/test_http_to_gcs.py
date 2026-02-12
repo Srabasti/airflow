@@ -49,6 +49,9 @@ class TestHttpToGCSOperator:
             bucket_name=TEST_BUCKET,
         )
         assert operator.endpoint == ENDPOINT
+        assert operator.object_name == DESTINATION_PATH_FILE
+        assert operator.bucket_name == TEST_BUCKET
+        assert operator.http_conn_id == HTTP_CONN_ID
 
     @mock.patch("airflow.providers.google.cloud.transfers.http_to_gcs.GCSHook")
     @mock.patch("airflow.providers.google.cloud.transfers.http_to_gcs.HttpHook")
