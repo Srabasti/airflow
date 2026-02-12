@@ -69,8 +69,6 @@ class HttpToGCSOperator(BaseOperator):
         the account must grant the originating account the Service Account Token Creator IAM role.
         If set as a sequence, the identities from the list must grant Service Account Token Creator IAM role to the directly preceding identity,
         with first account from the list granting this role to the originating account.
-    :param unwrap_single: If True (default), returns a single URI string when there's only one file.
-        If False, always returns a list of URIs. Default will change to False in a future release.
     :param bucket_name: The bucket to upload to.
     :param object_name: The object name to set when uploading the file.
     :param mime_type: The file mime type set when uploading the file.
@@ -114,7 +112,6 @@ class HttpToGCSOperator(BaseOperator):
         tcp_keep_alive_interval: int = 30,
         gcp_conn_id: str = "google_cloud_default",
         impersonation_chain: str | Sequence[str] | None = None,
-        unwrap_single: bool | None = None,
         bucket_name: str,
         object_name: str,
         mime_type: str | None = None,
@@ -143,18 +140,6 @@ class HttpToGCSOperator(BaseOperator):
         self.tcp_keep_alive_interval = tcp_keep_alive_interval
         self.gcp_conn_id = gcp_conn_id
         self.impersonation_chain = impersonation_chain
-        if unwrap_single is None:
-            self.unwrap_single = True
-            import warnings
-
-            warnings.warn(
-                "The default value of unwrap_single will change from True to False in a future release."
-                "Please set unwrap_single explicitly to avoid this warning.",
-                FutureWarning,
-                stacklevel=2,
-            )
-        else:
-            self.unwrap_single = unwrap_single
         self.bucket_name = bucket_name
         self.object_name = object_name
         self.mime_type = mime_type
@@ -185,7 +170,8 @@ class HttpToGCSOperator(BaseOperator):
         """Create and return an GCSHook."""
         return GCSHook(gcp_conn_id=self.gcp_conn_id, impersonation_chain=self.impersonation_chain)
 
-    def execute(self, context: Context) -> str | list[str]:
+    def execute(self, context: Context) -> list[str]:
+        """Return List of destination URIs (gs://bucket_name/object_name) for uploaded file."""
         self.log.info("Calling HTTP method")
         response = self.http_hook.run(
             endpoint=self.endpoint, data=self.data, headers=self.headers, extra_options=self.extra_options
@@ -207,8 +193,4 @@ class HttpToGCSOperator(BaseOperator):
             user_project=self.user_project,
         )
 
-        result = [f"gs://{self.bucket_name}/{self.object_name}"]
-
-        if self.unwrap_single:
-            return result[0]
-        return result
+        return [f"gs://{self.bucket_name}/{self.object_name}"]
