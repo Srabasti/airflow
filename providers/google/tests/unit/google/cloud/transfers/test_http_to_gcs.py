@@ -109,14 +109,17 @@ class TestHttpToGCSOperator:
     @mock.patch("airflow.providers.google.cloud.transfers.http_to_gcs.HttpHook")
     def test_execute_returns_destination_uris(self, http_hook, gcs_hook):
         """Test that execute() returns a list of destination GCS URIs (gs://bucket/object)."""
-        bucket_name = TEST_BUCKET
-        object_name = DESTINATION_PATH_FILE
         task = HttpToGCSOperator(
             task_id="http_to_gcs_operator",
             http_conn_id=HTTP_CONN_ID,
             endpoint=ENDPOINT,
+            headers=HEADERS,
+            data=DATA,
+            extra_options=EXTRA_OPTIONS,
             object_name=DESTINATION_PATH_FILE,
             bucket_name=TEST_BUCKET,
+            gcp_conn_id=GCP_CONN_ID,
+            impersonation_chain=IMPERSONATION_CHAIN,
         )
         result = task.execute(None)
 
