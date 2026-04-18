@@ -17,6 +17,7 @@
 
 from __future__ import annotations
 
+import itertools
 from datetime import timedelta
 from unittest import mock
 from unittest.mock import PropertyMock
@@ -45,7 +46,7 @@ class TestAwsTaskLogFetcher:
 
     @mock.patch(
         "threading.Event.is_set",
-        side_effect=(False, False, False, True),
+        side_effect=itertools.chain([False, False, False], itertools.repeat(True)),
     )
     @mock.patch(
         "airflow.providers.amazon.aws.hooks.logs.AwsLogsHook.get_log_events",
